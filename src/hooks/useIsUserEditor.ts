@@ -1,7 +1,7 @@
 import { api } from "@/utils/api";
 import useUserSession from "./useUserSession";
 
-export const IsUserEditor = () => {
+export const useIsUserEditor = () => {
   const user = useUserSession();
 
   const userData = api.users.getById.useQuery(
