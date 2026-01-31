@@ -29,6 +29,7 @@ export default function ManageTechStacksModal({
     imgUrl: "",
   });
   const [formErrors, setFormErrors] = useState<Partial<EditFormData>>({});
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const utils = api.useContext();
 
@@ -44,6 +45,10 @@ export default function ManageTechStacksModal({
         setEditingTechId(null);
         setEditFormData({ slug: "", label: "", imgUrl: "" });
         setFormErrors({});
+        setErrorMessage(null);
+      },
+      onError: (error) => {
+        setErrorMessage(error.message || "Failed to update tech stack");
       },
     });
 
@@ -51,6 +56,10 @@ export default function ManageTechStacksModal({
     api.techs.delete.useMutation({
       onSuccess: async () => {
         await utils.techs.getAll.invalidate();
+        setErrorMessage(null);
+      },
+      onError: (error) => {
+        setErrorMessage(error.message || "Failed to delete tech stack");
       },
     });
 
@@ -101,6 +110,7 @@ export default function ManageTechStacksModal({
       return;
     }
 
+    setErrorMessage(null);
     try {
       await updateTech({
         id: techId,
@@ -109,22 +119,25 @@ export default function ManageTechStacksModal({
         imgUrl: editFormData.imgUrl.trim(),
       });
     } catch (error) {
-      console.error("Error updating tech stack:", error);
-      alert(error instanceof Error ? error.message : "Failed to update tech stack");
+      // Error is handled by onError callback
     }
   };
 
   const handleDelete = async (techId: string, techLabel: string, usageCount: number) => {
     if (usageCount > 0) {
-      alert(`Cannot delete "${techLabel}". It is currently used in ${usageCount} project(s). Please remove it from all projects first.`);
+      setErrorMessage(`Cannot delete "${techLabel}". It is currently used in ${usageCount} project(s). Please remove it from all projects first.`);
       return;
     }
 
+    if (!confirm(`Are you sure you want to delete "${techLabel}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    setErrorMessage(null);
     try {
       await deleteTech({ id: techId });
     } catch (error) {
-      console.error("Error deleting tech stack:", error);
-      alert(error instanceof Error ? error.message : "Failed to delete tech stack");
+      // Error is handled by onError callback
     }
   };
 

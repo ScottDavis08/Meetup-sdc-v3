@@ -138,46 +138,42 @@ export const techRouter = createTRPCRouter({
 
       const { id, ...data } = input;
 
-      if (data.slug !== undefined) {
-        const slug = data.slug
-          ? data.slug.toLowerCase()
-          : data.label
-          ? generateSlug(data.label)
-          : undefined;
+      if (data.slug !== undefined || data.label !== undefined) {
+        let finalSlug: string;
 
-        if (slug) {
-          const existing = await ctx.prisma.masterTech.findFirst({
-            where: {
-              slug,
-              NOT: { id },
-            },
+        if (data.slug && data.slug.trim()) {
+          finalSlug = data.slug;
+        } else if (data.label) {
+          finalSlug = generateSlug(data.label);
+        } else {
+          const existing = await ctx.prisma.masterTech.findUnique({
+            where: { id },
+            select: { label: true },
           });
-
-          if (existing) {
-            throw new Error("A tech stack with this slug already exists");
+          if (!existing) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: "Tech stack not found",
+            });
           }
-
-          data.slug = slug;
+          finalSlug = generateSlug(existing.label);
         }
-      } else if (data.label) {
-        // If label is being updated but slug is not provided, generate new slug
-        data.slug = generateSlug(data.label);
 
-        const existing = await ctx.prisma.masterTech.findFirst({
+        const conflicting = await ctx.prisma.masterTech.findFirst({
           where: {
-            slug: data.slug,
+            slug: finalSlug,
             NOT: { id },
           },
         });
 
-        if (existing) {
+        if (conflicting) {
           throw new TRPCError({
             code: "CONFLICT",
             message: "A tech stack with this slug already exists",
           });
         }
 
-        data.slug = data.slug;
+        data.slug = finalSlug;
       }
 
       const tech = await ctx.prisma.masterTech.update({
