@@ -23,7 +23,7 @@ export default function ManageChaptersModal({
   isOpen,
   setIsOpen,
 }: ManageChaptersModalProps) {
-  const cancelButtonRef = useRef(null);
+  const cancelButtonRef = useRef<HTMLButtonElement | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingChapterId, setEditingChapterId] = useState<string | null>(null);
   
