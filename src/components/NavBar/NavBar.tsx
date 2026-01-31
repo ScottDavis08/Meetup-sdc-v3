@@ -21,7 +21,7 @@ import { api } from "@/utils/api";
 import ManageMembersModal from "@/components/ManageMembersModal/ManageMembersModal";
 import ManageChaptersModal from "@/components/ManageChaptersModal/ManageChaptersModal";
 import NewEventModal from "@/components/NewEventModal/NewEventModal";
-import { IsUserEditor } from "@/hooks/IsUserEditor";
+import { useIsUserEditor } from "@/hooks/useIsUserEditor";
 
 
 type Chapter = {
@@ -31,8 +31,7 @@ type Chapter = {
 };
 
 const HoverMenu = ({ navigation_item_with_sublinks, currentPath }) => {
-  const router = useRouter();
-  const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
 
   return (
     <>
@@ -60,7 +59,7 @@ const HoverMenu = ({ navigation_item_with_sublinks, currentPath }) => {
                     }
                   }}
                   className={classNames(
-                    currentRouteIsActive(currentPath, item.href)
+                    currentRouteIsActive(currentPath, item.href ?? "")
                       ? "bg-gray-100 text-gray-900"
                       : "text-gray-700 hover:bg-gray-100 hover:text-gray-900",
                     "block px-4 py-2 text-sm cursor-pointer"
@@ -101,7 +100,7 @@ const TopNavigationBar = ({ currentPath, navigation, chaptersLoading }) => {
               key={item.name}
               href={item.href}
               className={classNames(
-                currentRouteIsActive(currentPath, item.href)
+                currentRouteIsActive(currentPath, item.href ?? "")
                   ? "border-gray-500  text-gray-900"
                   : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
                 "inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium"
@@ -216,7 +215,7 @@ export default function NavBar() {
   } = api.chapters.getAll.useQuery();
 
   const user = useUserSession();
-  const userIsEditor = IsUserEditor();
+  const userIsEditor = useIsUserEditor();
 
   const navigation = [
     { name: "Home", href: "/", current: false },
@@ -230,7 +229,7 @@ export default function NavBar() {
         current: false,
       })),
     },
-    // Add Admin dropdown - only show if user is admin
+    // Add Admin dropdown - only show if user is an editor
     ...(userIsEditor && user ? [{
       name: "Admin",
       href: "",

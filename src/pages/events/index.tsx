@@ -9,7 +9,7 @@
 
 import NewEventModal from "@/components/NewEventModal/NewEventModal";
 import StyledCircleLoader from "@/components/StyledCircleLoader/StyledCircleLoader";
-import { IsUserEditor } from "@/hooks/IsUserEditor";
+import { useIsUserEditor } from "@/hooks/useIsUserEditor";
 import useUserSession from "@/hooks/useUserSession";
 import { api } from "@/utils/api";
 import React, { useState } from "react";
@@ -22,7 +22,7 @@ export default function EventsPage() {
   // const { isError, data, isLoading, error } = api.events.getAll.useQuery();
 
   const user = useUserSession();
-  const userIsEditor = IsUserEditor();
+  const userIsEditor = useIsUserEditor();
 
   const router = useRouter();
   const { isReady, query } = router;
