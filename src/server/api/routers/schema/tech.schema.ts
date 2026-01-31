@@ -31,11 +31,10 @@ const urlSchema = z
 export const createTechSchema = z.object({
   slug: z
     .string()
-    .min(1)
-    .toLowerCase()
     .optional()
-    .or(z.literal(""))
-    .transform((val) => val || undefined),
+    .transform((val) =>
+      val && val.trim() ? val.toLowerCase() : undefined
+    ),
   label: z.string().min(1, "Label is required"),
   imgUrl: urlSchema,
 });
