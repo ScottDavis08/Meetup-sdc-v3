@@ -185,6 +185,7 @@ export default function ManageTechStacksModal({
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm p-2 border"
+                      aria-label="Search tech stacks"
                     />
                   </div>
 
