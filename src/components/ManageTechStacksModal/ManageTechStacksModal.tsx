@@ -120,10 +120,6 @@ export default function ManageTechStacksModal({
       return;
     }
 
-    if (!confirm(`Are you sure you want to delete "${techLabel}"? This action cannot be undone.`)) {
-      return;
-    }
-
     try {
       await deleteTech({ id: techId });
     } catch (error) {
