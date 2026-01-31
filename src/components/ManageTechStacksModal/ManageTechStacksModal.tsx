@@ -116,11 +116,9 @@ export default function ManageTechStacksModal({
                                 <p className="text-xs text-gray-500 truncate">
                                   {tech.slug}
                                 </p>
-                                {tech._count && (
-                                  <p className="text-xs text-gray-400 mt-1">
-                                    Used in {tech._count.Tech} project(s)
-                                  </p>
-                                )}
+                                <p className="text-xs text-gray-400 mt-1">
+                                  Used in {tech._count.Tech} project(s)
+                                </p>
                               </div>
                             </div>
                           </div>
