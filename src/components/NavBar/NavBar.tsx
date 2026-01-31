@@ -20,7 +20,7 @@ import { useState } from "react";
 import { api } from "@/utils/api";
 import ManageMembersModal from "@/components/ManageMembersModal/ManageMembersModal";
 import NewEventModal from "@/components/NewEventModal/NewEventModal";
-import { IsUserEditor } from "@/hooks/IsUserEditor";
+import { useIsUserEditor } from "@/hooks/useIsUserEditor";
 
 
 type Chapter = {
@@ -214,7 +214,7 @@ export default function NavBar() {
   } = api.chapters.getAll.useQuery();
 
   const user = useUserSession();
-  const userIsEditor = IsUserEditor();
+  const userIsEditor = useIsUserEditor();
 
   const navigation = [
     { name: "Home", href: "/", current: false },
