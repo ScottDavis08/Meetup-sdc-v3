@@ -10,6 +10,13 @@ import {
   techOutputSchema,
 } from "./schema/tech.schema";
 import { z } from "zod";
+
+function generateSlug(label: string): string {
+  return label
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
 import { TRPCError } from "@trpc/server";
 
 export const techRouter = createTRPCRouter({
@@ -93,8 +100,12 @@ export const techRouter = createTRPCRouter({
         });
       }
 
+      const slug = input.slug
+        ? input.slug.toLowerCase()
+        : generateSlug(input.label);
+
       const existing = await ctx.prisma.masterTech.findFirst({
-        where: { slug: input.slug },
+        where: { slug },
       });
 
       if (existing) {
@@ -106,7 +117,7 @@ export const techRouter = createTRPCRouter({
 
       const tech = await ctx.prisma.masterTech.create({
         data: {
-          slug: input.slug.toLowerCase(),
+          slug,
           label: input.label,
           imgUrl: input.imgUrl,
         },
@@ -127,22 +138,42 @@ export const techRouter = createTRPCRouter({
 
       const { id, ...data } = input;
 
-      if (data.slug) {
-        const existing = await ctx.prisma.masterTech.findFirst({
+      if (data.slug !== undefined || data.label !== undefined) {
+        let finalSlug: string;
+
+        if (data.slug && data.slug.trim()) {
+          finalSlug = data.slug;
+        } else if (data.label) {
+          finalSlug = generateSlug(data.label);
+        } else {
+          const existing = await ctx.prisma.masterTech.findUnique({
+            where: { id },
+            select: { label: true },
+          });
+          if (!existing) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: "Tech stack not found",
+            });
+          }
+          finalSlug = generateSlug(existing.label);
+        }
+
+        const conflicting = await ctx.prisma.masterTech.findFirst({
           where: {
-            slug: data.slug,
+            slug: finalSlug,
             NOT: { id },
           },
         });
 
-        if (existing) {
+        if (conflicting) {
           throw new TRPCError({
             code: "CONFLICT",
             message: "A tech stack with this slug already exists",
           });
         }
 
-        data.slug = data.slug;
+        data.slug = finalSlug;
       }
 
       const tech = await ctx.prisma.masterTech.update({
