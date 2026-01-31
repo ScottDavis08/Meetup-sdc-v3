@@ -12,7 +12,7 @@ export default function ManageChaptersModal({
   isOpen,
   setIsOpen,
 }: ManageChaptersModalProps) {
-  const cancelButtonRef = useRef(null);
+  const cancelButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const { data: chapters, isLoading, isError } = api.chapters.getAllWithInactive.useQuery(
     undefined,

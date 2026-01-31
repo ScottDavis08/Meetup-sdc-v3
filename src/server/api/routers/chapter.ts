@@ -14,6 +14,8 @@ import {
   chapterOutputSchema 
 } from "./schema/chapter.schema";
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
+import { slugify } from "@/helpers/slugify";
 
 export const chapterRouter = createTRPCRouter({
   getAll: publicProcedure
@@ -42,7 +44,10 @@ export const chapterRouter = createTRPCRouter({
     .output(z.array(chapterOutputSchema))
     .query(async ({ ctx }) => {
       if (ctx.session.user.role !== "ADMIN" && ctx.session.user.role !== "MOD") {
-        throw new Error("Unauthorized");
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You must be an admin or moderator to view inactive chapters",
+        });
       }
 
       const chapters = await ctx.prisma.chapter.findMany({
@@ -113,10 +118,13 @@ export const chapterRouter = createTRPCRouter({
     .input(createChapterSchema)
     .mutation(async ({ ctx, input }) => {
       if (ctx.session.user.role !== "ADMIN") {
-        throw new Error("Unauthorized");
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only admins can create chapters",
+        });
       }
 
-      const slug = input.slug || input.name.toLowerCase().replace(/\s+/g, "-");
+      const slug = input.slug ? slugify(input.slug) : slugify(input.name);
 
       const chapter = await ctx.prisma.chapter.create({
         data: {
@@ -136,13 +144,16 @@ export const chapterRouter = createTRPCRouter({
     .input(updateChapterSchema)
     .mutation(async ({ ctx, input }) => {
       if (ctx.session.user.role !== "ADMIN") {
-        throw new Error("Unauthorized");
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only admins can update chapters",
+        });
       }
 
       const { id, ...data } = input;
 
       if (data.slug) {
-        data.slug = data.slug.toLowerCase().replace(/\s+/g, "-");
+        data.slug = slugify(data.slug);
       }
 
       const chapter = await ctx.prisma.chapter.update({
@@ -157,7 +168,10 @@ export const chapterRouter = createTRPCRouter({
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       if (ctx.session.user.role !== "ADMIN") {
-        throw new Error("Unauthorized");
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only admins can delete chapters",
+        });
       }
 
       const chapter = await ctx.prisma.chapter.update({
