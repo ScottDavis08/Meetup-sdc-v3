@@ -20,6 +20,7 @@ import { useState } from "react";
 import { api } from "@/utils/api";
 import ManageMembersModal from "@/components/ManageMembersModal/ManageMembersModal";
 import ManageChaptersModal from "@/components/ManageChaptersModal/ManageChaptersModal";
+import ManageTechStacksModal from "@/components/ManageTechStacksModal/ManageTechStacksModal";
 import NewEventModal from "@/components/NewEventModal/NewEventModal";
 import { useIsUserEditor } from "@/hooks/useIsUserEditor";
 
@@ -215,6 +216,7 @@ const HamburgerNavigationBar = ({
 export default function NavBar() {
   const [isManageMembersOpen, setIsManageMembersOpen] = useState(false);
   const [isManageChaptersOpen, setIsManageChaptersOpen] = useState(false);
+  const [isManageTechStacksOpen, setIsManageTechStacksOpen] = useState(false);
   const [isNewEventOpen, setIsNewEventOpen] = useState(false);
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
@@ -255,6 +257,11 @@ export default function NavBar() {
           current: false,
         },
         {
+          name: "Manage Tech Stacks",
+          onClick: () => setIsManageTechStacksOpen(true),
+          current: false,
+        },
+        {
           name: "Create Events",
           onClick: () => setIsNewEventOpen(true),
           current: false,
@@ -281,6 +288,10 @@ export default function NavBar() {
           <ManageChaptersModal
             isOpen={isManageChaptersOpen}
             setIsOpen={setIsManageChaptersOpen}
+          />
+          <ManageTechStacksModal
+            isOpen={isManageTechStacksOpen}
+            setIsOpen={setIsManageTechStacksOpen}
           />
           <NewEventModal
             isOpen={isNewEventOpen}
