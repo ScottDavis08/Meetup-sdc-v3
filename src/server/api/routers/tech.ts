@@ -17,7 +17,6 @@ function generateSlug(label: string): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 }
-import { TRPCError } from "@trpc/server";
 
 export const techRouter = createTRPCRouter({
   getAll: publicProcedure
@@ -57,10 +56,7 @@ export const techRouter = createTRPCRouter({
       });
 
       if (!tech) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Tech stack not found",
-        });
+        throw new Error("Tech stack not found");
       }
 
       return tech;
@@ -94,10 +90,7 @@ export const techRouter = createTRPCRouter({
     .input(createTechSchema)
     .mutation(async ({ ctx, input }) => {
       if (ctx.session.user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Only admins can create tech stacks",
-        });
+        throw new Error("Unauthorized");
       }
 
       const slug = input.slug
@@ -109,10 +102,7 @@ export const techRouter = createTRPCRouter({
       });
 
       if (existing) {
-        throw new TRPCError({
-          code: "CONFLICT",
-          message: "A tech stack with this slug already exists",
-        });
+        throw new Error("A tech stack with this slug already exists");
       }
 
       const tech = await ctx.prisma.masterTech.create({
@@ -130,50 +120,46 @@ export const techRouter = createTRPCRouter({
     .input(updateTechSchema)
     .mutation(async ({ ctx, input }) => {
       if (ctx.session.user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Only admins can update tech stacks",
-        });
+        throw new Error("Unauthorized");
       }
 
       const { id, ...data } = input;
 
-      if (data.slug !== undefined || data.label !== undefined) {
-        let finalSlug: string;
+      if (data.slug !== undefined) {
+        const slug = data.slug
+          ? data.slug.toLowerCase()
+          : data.label
+          ? generateSlug(data.label)
+          : undefined;
 
-        if (data.slug && data.slug.trim()) {
-          finalSlug = data.slug;
-        } else if (data.label) {
-          finalSlug = generateSlug(data.label);
-        } else {
-          const existing = await ctx.prisma.masterTech.findUnique({
-            where: { id },
-            select: { label: true },
+        if (slug) {
+          const existing = await ctx.prisma.masterTech.findFirst({
+            where: {
+              slug,
+              NOT: { id },
+            },
           });
-          if (!existing) {
-            throw new TRPCError({
-              code: "NOT_FOUND",
-              message: "Tech stack not found",
-            });
-          }
-          finalSlug = generateSlug(existing.label);
-        }
 
-        const conflicting = await ctx.prisma.masterTech.findFirst({
+          if (existing) {
+            throw new Error("A tech stack with this slug already exists");
+          }
+
+          data.slug = slug;
+        }
+      } else if (data.label) {
+        // If label is being updated but slug is not provided, generate new slug
+        data.slug = generateSlug(data.label);
+
+        const existing = await ctx.prisma.masterTech.findFirst({
           where: {
-            slug: finalSlug,
+            slug: data.slug,
             NOT: { id },
           },
         });
 
-        if (conflicting) {
-          throw new TRPCError({
-            code: "CONFLICT",
-            message: "A tech stack with this slug already exists",
-          });
+        if (existing) {
+          throw new Error("A tech stack with this slug already exists");
         }
-
-        data.slug = finalSlug;
       }
 
       const tech = await ctx.prisma.masterTech.update({
@@ -188,10 +174,7 @@ export const techRouter = createTRPCRouter({
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       if (ctx.session.user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Only admins can delete tech stacks",
-        });
+        throw new Error("Unauthorized");
       }
 
       const usageCount = await ctx.prisma.tech.count({
@@ -199,10 +182,9 @@ export const techRouter = createTRPCRouter({
       });
 
       if (usageCount > 0) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: `Cannot delete tech stack. It is used in ${usageCount} project(s).`,
-        });
+        throw new Error(
+          `Cannot delete tech stack. It is used in ${usageCount} project(s).`
+        );
       }
 
       const tech = await ctx.prisma.masterTech.delete({

@@ -19,7 +19,6 @@ import { signIn, signOut } from "next-auth/react";
 import { useState } from "react";
 import { api } from "@/utils/api";
 import ManageMembersModal from "@/components/ManageMembersModal/ManageMembersModal";
-import ManageChaptersModal from "@/components/ManageChaptersModal/ManageChaptersModal";
 import ManageTechStacksModal from "@/components/ManageTechStacksModal/ManageTechStacksModal";
 import NewEventModal from "@/components/NewEventModal/NewEventModal";
 import { useIsUserEditor } from "@/hooks/useIsUserEditor";
@@ -155,36 +154,27 @@ const HamburgerNavigationBar = ({
                   >
                     {item.name}
                   </Disclosure.Button>
-                  {chaptersLoading ? (
+                  {item.subLinks.map((subItem) => (
                     <Disclosure.Button
-                      as="span"
-                      className="block cursor-default select-none border-l-4 border-transparent py-2 pl-8 pr-4 text-base font-medium text-gray-400"
+                      key={subItem.name}
+                      as="a"
+                      href={subItem.href || "#"}
+                      onClick={(e) => {
+                        if (subItem.onClick) {
+                          e.preventDefault();
+                          subItem.onClick();
+                        }
+                      }}
+                      className={classNames(
+                        currentRouteIsActive(currentPath, subItem.href)
+                          ? "border-gray-500 bg-gray-50 text-gray-700"
+                          : "border-transparent text-gray-500 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700",
+                        "block border-l-4 py-2 pl-8 pr-4 text-base font-medium"
+                      )}
                     >
-                      Loading Chapters...
+                      {subItem.name}
                     </Disclosure.Button>
-                  ) : (
-                    item.subLinks.map((subItem) => (
-                      <Disclosure.Button
-                        key={subItem.name}
-                        as="a"
-                        href={subItem.href || "#"}
-                        onClick={(e) => {
-                          if (subItem.onClick) {
-                            e.preventDefault();
-                            subItem.onClick();
-                          }
-                        }}
-                        className={classNames(
-                          currentRouteIsActive(currentPath, subItem.href)
-                            ? "border-gray-500 bg-gray-50 text-gray-700"
-                            : "border-transparent text-gray-500 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700",
-                          "block border-l-4 py-2 pl-8 pr-4 text-base font-medium"
-                        )}
-                      >
-                        {subItem.name}
-                      </Disclosure.Button>
-                    ))
-                  )}
+                  ))}
                 </>
               );
             }
@@ -215,7 +205,6 @@ const HamburgerNavigationBar = ({
 
 export default function NavBar() {
   const [isManageMembersOpen, setIsManageMembersOpen] = useState(false);
-  const [isManageChaptersOpen, setIsManageChaptersOpen] = useState(false);
   const [isManageTechStacksOpen, setIsManageTechStacksOpen] = useState(false);
   const [isNewEventOpen, setIsNewEventOpen] = useState(false);
 
@@ -252,16 +241,6 @@ export default function NavBar() {
           current: false,
         },
         {
-          name: "Manage Chapters",
-          onClick: () => setIsManageChaptersOpen(true),
-          current: false,
-        },
-        {
-          name: "Manage Chapters",
-          onClick: () => setIsManageChaptersOpen(true),
-          current: false,
-        },
-        {
           name: "Tech Stacks",
           onClick: () => setIsManageTechStacksOpen(true),
           current: false,
@@ -274,14 +253,12 @@ export default function NavBar() {
       ],
     }] : []),
   ];
-  
   const router = useRouter();
   const pathname = router.pathname;
 
   const handleButtonClick = () => {
     return user ? signOut() : signIn();
   };
-  
   return (
     <Disclosure as="nav" className="bg-white shadow">
       {({ open }) => (
@@ -289,10 +266,6 @@ export default function NavBar() {
           <ManageMembersModal
             isOpen={isManageMembersOpen}
             setIsOpen={setIsManageMembersOpen}
-          />
-          <ManageChaptersModal
-            isOpen={isManageChaptersOpen}
-            setIsOpen={setIsManageChaptersOpen}
           />
           <ManageTechStacksModal
             isOpen={isManageTechStacksOpen}

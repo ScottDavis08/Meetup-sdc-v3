@@ -31,21 +31,20 @@ const urlSchema = z
 export const createTechSchema = z.object({
   slug: z
     .string()
+    .min(1)
+    .toLowerCase()
     .optional()
-    .transform((val) =>
-      val && val.trim() ? val.toLowerCase() : undefined
-    ),
+    .or(z.literal(""))
+    .transform((val) => val || undefined),
   label: z.string().min(1, "Label is required"),
   imgUrl: urlSchema,
 });
 
-// For updates, `id` is required; other fields are optional.
-export const updateTechSchema = z.object({
-  id: z.string(),
-  slug: createTechSchema.shape.slug.optional(),
-  label: createTechSchema.shape.label.optional(),
-  imgUrl: createTechSchema.shape.imgUrl.optional(),
-});
+export const updateTechSchema = createTechSchema
+  .partial()
+  .extend({
+    id: z.string(),
+  });
 
 export const getTechSchema = z.object({
   id: z.string(),
