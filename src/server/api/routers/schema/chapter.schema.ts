@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const createChapterSchema = z.object({
   name: z.string().min(1, "Chapter name is required"),
-  slug: z.string().optional(),
+  slug: z.string().trim().min(1).optional(),
   location: z.string().optional(),
   meetupUrl: z.string().url().optional(),
   discordUrl: z.string().url().optional(),
