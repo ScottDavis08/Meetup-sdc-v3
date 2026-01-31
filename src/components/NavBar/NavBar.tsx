@@ -252,7 +252,12 @@ export default function NavBar() {
           current: false,
         },
         {
-          name: "Chapters",
+          name: "Manage Chapters",
+          onClick: () => setIsManageChaptersOpen(true),
+          current: false,
+        },
+        {
+          name: "Manage Chapters",
           onClick: () => setIsManageChaptersOpen(true),
           current: false,
         },
