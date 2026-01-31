@@ -39,11 +39,13 @@ export const createTechSchema = z.object({
   imgUrl: urlSchema,
 });
 
-export const updateTechSchema = createTechSchema
-  .partial()
-  .extend({
-    id: z.string(),
-  });
+// For updates, `id` is required; other fields are optional.
+export const updateTechSchema = z.object({
+  id: z.string(),
+  slug: createTechSchema.shape.slug.optional(),
+  label: createTechSchema.shape.label.optional(),
+  imgUrl: createTechSchema.shape.imgUrl.optional(),
+});
 
 export const getTechSchema = z.object({
   id: z.string(),
